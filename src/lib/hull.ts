@@ -78,6 +78,15 @@ export type PackedItem = {
   y: number;
 };
 
+/** The five numbers the cross-section is built from. */
+export type Hexagon = {
+  height: number;
+  width: number;
+  floorwidth: number;
+  ceilingwidth: number;
+  depth: number;
+};
+
 export type PackingOptions = {
   gap: number;
   density: number;

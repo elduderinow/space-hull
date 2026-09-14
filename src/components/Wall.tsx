@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useStandardMaterial } from "@/lib/materials";
 import { useTextureSet } from "@/lib/textures";
-import { packWall, type HullSegment, type HullType } from "@/lib/hull";
+import { packWall, type HullSegment, type HullType, type PackingOptions } from "@/lib/hull";
 import { buildWallGeometry, buildWindowFrame } from "@/lib/wallGeometry";
 
 /**
@@ -15,6 +15,7 @@ export default function Wall({
   segment,
   depth,
   seed,
+  packing,
   color,
   windowColor,
   panelColor,
@@ -23,6 +24,7 @@ export default function Wall({
   segment: HullSegment;
   depth: number;
   seed: number;
+  packing: PackingOptions;
   color: string;
   windowColor: string;
   panelColor: string;
@@ -36,8 +38,8 @@ export default function Wall({
   const isFloor = segment.type === "floor-center";
 
   const items = useMemo(
-    () => (isFloor ? [] : packWall(depth, segment.length, seed)),
-    [isFloor, depth, segment.length, seed],
+    () => (isFloor ? [] : packWall(depth, segment.length, seed, packing)),
+    [isFloor, depth, segment.length, seed, packing],
   );
 
   const geometry = useMemo(

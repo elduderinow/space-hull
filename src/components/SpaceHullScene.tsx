@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
-import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, useCallback, useDeferredValue, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { WebGPURenderer } from "three/webgpu";
 import Controls from "./Controls";
@@ -9,6 +9,7 @@ import EnvironmentLightformers from "./EnvironmentLightformers";
 import Lights from "./Lights";
 import Post from "./Post";
 import SpaceHull from "./SpaceHull";
+import { DEFAULT_PACKING, type Hexagon, type PackingOptions } from "@/lib/hull";
 import {
   DEFAULT_INTENSITY,
   INITIAL_ORBIT_ANGLE,
@@ -26,8 +27,19 @@ export default function SpaceHullScene() {
   const [angle, setAngle] = useState(INITIAL_ORBIT_ANGLE);
   const [intensity, setIntensity] = useState(DEFAULT_INTENSITY);
   const [autoRotate, setAutoRotate] = useState(false);
+  const [hexagon, setHexagon] = useState<Hexagon>(PRESETS[1].hexagon);
+  const [packing, setPacking] = useState<PackingOptions>(DEFAULT_PACKING);
 
   const preset = PRESETS[presetId];
+
+  /**
+   * Every wall is a slab with its windows cut out by a boolean, so a drag that
+   * moved geometry on each frame would rebuild eight of those per frame. The
+   * sliders stay on the live value and the geometry follows the deferred one,
+   * which lets React drop the intermediate hulls it never had time to draw.
+   */
+  const geometryHexagon = useDeferredValue(hexagon);
+  const geometryPacking = useDeferredValue(packing);
 
   /**
    * WebGPU where available, WebGL 2 otherwise. Everything in the scene is node
@@ -107,7 +119,12 @@ export default function SpaceHullScene() {
         <Controls preset={preset} />
         <Lights preset={preset} angle={angle} intensity={intensity} />
         <Suspense fallback={null}>
-          <SpaceHull key={presetId} preset={preset} />
+          <SpaceHull
+            key={presetId}
+            preset={preset}
+            hexagon={geometryHexagon}
+            packing={geometryPacking}
+          />
         </Suspense>
         <EnvironmentLightformers />
         <Post />
@@ -121,7 +138,14 @@ export default function SpaceHullScene() {
             key={id}
             type="button"
             className={Number(id) === presetId ? "active" : ""}
-            onClick={() => setPresetId(Number(id) as PresetId)}
+            onClick={() => {
+              // A preset is where the sliders start, not a lock on them. Both
+              // move together, or the first frame draws new colours on the old
+              // cross-section.
+              const next = Number(id) as PresetId;
+              setPresetId(next);
+              setHexagon(PRESETS[next].hexagon);
+            }}
           >
             {PRESETS[Number(id) as PresetId].name}
           </button>
@@ -167,10 +191,98 @@ export default function SpaceHullScene() {
             onChange={(e) => setAutoRotate(e.target.checked)}
           />
         </label>
+
+        {/* Closed to start with, the way the 2024 leva folders were. */}
+        <details className="group">
+          <summary>hull</summary>
+          {HULL_SLIDERS.map(({ key, label, min, max }) => (
+            <Row
+              key={key}
+              label={label}
+              min={min}
+              max={max}
+              step={0.1}
+              value={hexagon[key]}
+              onChange={(value) => setHexagon((current) => ({ ...current, [key]: value }))}
+            />
+          ))}
+        </details>
+
+        <details className="group">
+          <summary>windows</summary>
+          {WINDOW_SLIDERS.map(({ key, label, min, max, step }) => (
+            <Row
+              key={key}
+              label={label}
+              min={min}
+              max={max}
+              step={step}
+              value={packing[key]}
+              onChange={(value) => setPacking((current) => ({ ...current, [key]: value }))}
+            />
+          ))}
+        </details>
       </div>
 
       {backend ? <p className="backend">{backend}</p> : null}
     </>
+  );
+}
+
+/** The 2024 hexagon folder: five numbers, 1 to 100, that rebuild the hull. */
+const HULL_SLIDERS = [
+  { key: "height", label: "height", min: 1, max: 100 },
+  { key: "width", label: "width", min: 1, max: 100 },
+  { key: "floorwidth", label: "floor", min: 1, max: 100 },
+  { key: "ceilingwidth", label: "ceiling", min: 1, max: 100 },
+  { key: "depth", label: "depth", min: 1, max: 100 },
+] as const satisfies readonly { key: keyof Hexagon; label: string; min: number; max: number }[];
+
+/** How the windows and panels scatter over each wall. */
+const WINDOW_SLIDERS = [
+  { key: "density", label: "density", min: 0, max: 100, step: 1 },
+  { key: "windowRatio", label: "windows", min: 0, max: 100, step: 1 },
+  { key: "gap", label: "gap", min: 0, max: 4, step: 0.1 },
+  { key: "windowW", label: "win w", min: 0.5, max: 12, step: 0.1 },
+  { key: "windowH", label: "win h", min: 0.5, max: 12, step: 0.1 },
+  { key: "panelW", label: "panel w", min: 0.5, max: 12, step: 0.1 },
+  { key: "panelH", label: "panel h", min: 0.5, max: 12, step: 0.1 },
+] as const satisfies readonly {
+  key: keyof PackingOptions;
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+}[];
+
+function Row({
+  label,
+  value,
+  min,
+  max,
+  step,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <label className="row">
+      <span>{label}</span>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+      />
+      <em>{value.toFixed(1)}</em>
+    </label>
   );
 }
 

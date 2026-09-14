@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { getHullPoints, getWallSegments } from "@/lib/hull";
+import { getHullPoints, getWallSegments, type Hexagon, type PackingOptions } from "@/lib/hull";
 import type { Preset } from "@/lib/presets";
 import Planet from "./Planet";
 import Wall from "./Wall";
@@ -13,8 +13,16 @@ import { Carpet, CurvedChair, FloorLamp, GlassTable } from "./Interior";
  * per edge, a shield ring at the far end, the planet outside and the furniture
  * inside.
  */
-export default function SpaceHull({ preset }: { preset: Preset }) {
-  const { height, width, floorwidth, ceilingwidth, depth } = preset.hexagon;
+export default function SpaceHull({
+  preset,
+  hexagon,
+  packing,
+}: {
+  preset: Preset;
+  hexagon: Hexagon;
+  packing: PackingOptions;
+}) {
+  const { height, width, floorwidth, ceilingwidth, depth } = hexagon;
 
   const points = useMemo(
     () => getHullPoints(floorwidth, ceilingwidth, height, width),
@@ -36,6 +44,7 @@ export default function SpaceHull({ preset }: { preset: Preset }) {
           depth={depth}
           // Each wall gets its own layout, and the same one every time.
           seed={(i + 1) * 9176 + Math.round(segment.length * 100)}
+          packing={packing}
           color={preset.wallColor}
           windowColor={preset.windowColor}
           panelColor={preset.panelColor}

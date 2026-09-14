@@ -144,3 +144,40 @@ canvas {
   color: rgba(233, 236, 245, 0.35);
   pointer-events: none;
 }
+
+/* Collapsed slider groups. The 2024 leva folders opened the same way. */
+.group {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 0.55rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.group summary {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(233, 236, 245, 0.7);
+  cursor: pointer;
+  list-style: none;
+}
+
+.group summary::after {
+  content: " +";
+  color: rgba(233, 236, 245, 0.35);
+}
+
+.group[open] summary::after {
+  content: " –";
+}
+
+.group summary::-webkit-details-marker {
+  display: none;
+}
+
+/* A panel with both groups open is taller than a phone. */
+.panel {
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
