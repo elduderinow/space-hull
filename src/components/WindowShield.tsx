@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useStandardMaterial } from "@/lib/materials";
 import { useTextureSet } from "@/lib/textures";
 import { buildShieldGeometry } from "@/lib/wallGeometry";
@@ -15,6 +15,7 @@ export default function WindowShield({
 }) {
   const textures = useTextureSet("steel", { repeat: [0.1, 0.1] });
   const geometry = useMemo(() => buildShieldGeometry(points), [points]);
+  useEffect(() => () => geometry.dispose(), [geometry]);
   const material = useStandardMaterial({
     color,
     metalness: 0.8,

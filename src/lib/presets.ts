@@ -1,11 +1,44 @@
-export type PresetId = 1 | 2 | 3;
+import { DEFAULT_PACKING, type Hexagon, type PackingOptions } from "./hull";
+import type { TextureSetName } from "./textures";
+
+export type PresetId = 1 | 2 | 3 | 4;
+
+/** What the hull walls are made of. Hoth needed painted panel, not greeble. */
+export type WallSurface = {
+  textures: TextureSetName;
+  repeat: [number, number];
+  metalness: number;
+  roughness: number;
+  normalScale: number;
+};
+
+/** The 2024 wall: deep greeble, lit hard from the side. */
+const GREEBLED_HULL: WallSurface = {
+  textures: "greeble_space",
+  repeat: [1, 1],
+  metalness: 0,
+  roughness: 1,
+  normalScale: 5,
+};
+
+/** Painted metal panel, flat enough for the wall colour to survive. */
+const PAINTED_PANEL: WallSurface = {
+  textures: "worn_abs",
+  repeat: [0.4, 0.4],
+  metalness: 0.15,
+  roughness: 0.62,
+  normalScale: 0.5,
+};
 
 export type Preset = {
   name: string;
   ambientColor: string;
   ambientIntensity: number;
   directionalColor: string;
-  hexagon: { height: number; width: number; floorwidth: number; ceilingwidth: number; depth: number };
+  hexagon: Hexagon;
+  /** How windows and panels scatter over each wall. */
+  packing: PackingOptions;
+  surface: WallSurface;
   wallColor: string;
   windowColor: string;
   lightBarColor: string;
@@ -28,6 +61,8 @@ export const PRESETS: Record<PresetId, Preset> = {
     ambientIntensity: 0.5,
     directionalColor: "#ff7300",
     hexagon: { height: 10, width: 26, floorwidth: 17.4, ceilingwidth: 2.0, depth: 20 },
+    packing: DEFAULT_PACKING,
+    surface: GREEBLED_HULL,
     wallColor: "#69502b",
     windowColor: "#4e3a23",
     lightBarColor: "#76ff00",
@@ -47,6 +82,8 @@ export const PRESETS: Record<PresetId, Preset> = {
     ambientIntensity: 0.7,
     directionalColor: "#4a90e2",
     hexagon: { height: 30.3, width: 67.0, floorwidth: 43.2, ceilingwidth: 57.4, depth: 80.3 },
+    packing: DEFAULT_PACKING,
+    surface: GREEBLED_HULL,
     wallColor: "#3a4a5c",
     windowColor: "#2d3e50",
     lightBarColor: "#00d4ff",
@@ -66,6 +103,8 @@ export const PRESETS: Record<PresetId, Preset> = {
     ambientIntensity: 0.0,
     directionalColor: "#ff5600",
     hexagon: { height: 11, width: 28.1, floorwidth: 25.6, ceilingwidth: 2.2, depth: 34.3 },
+    packing: DEFAULT_PACKING,
+    surface: GREEBLED_HULL,
     wallColor: "#623011",
     windowColor: "#753704",
     lightBarColor: "#e52bef",
@@ -78,6 +117,34 @@ export const PRESETS: Record<PresetId, Preset> = {
     chairColor: "#8b4513",
     camera: { position: [-8.2, -1.3, 6.2], lookAt: [-2, -1, 0] },
     shadow: { frustum: 24, far: 58, near: 4, bias: -0.002, normalBias: 0.08 },
+  },
+  4: {
+    name: "Hoth",
+    /* Warm painted metal inside, cold daylight outside. The 2024 presets all
+       light the room from the sun; this one leans on the tubes and the lamp and
+       lets the window light read as the cold thing. */
+    ambientColor: "#fff1da",
+    ambientIntensity: 0.42,
+    directionalColor: "#c3d8ea",
+    hexagon: { height: 8.2, width: 22.4, floorwidth: 19.8, ceilingwidth: 13.5, depth: 13.6 },
+    /* Fewer, wider windows with more wall between them. The default scatter is
+       tuned for a hangar and reads as a curtain wall at this size. */
+    packing: { gap: 1.3, density: 24, windowRatio: 34, windowW: 7.2, windowH: 3.2, panelW: 3.4, panelH: 1.8 },
+    /* greeble_space carries its own dark basecolour, which swallowed the cream
+       and put the room back in a hangar. worn_abs has none, so wallColor wins. */
+    surface: PAINTED_PANEL,
+    wallColor: "#cdc3ab",
+    windowColor: "#b4a992",
+    lightBarColor: "#ffd9a2",
+    panelColor: "#9a9482",
+    lampColor: "#7c6c4c",
+    lampLightColor: "#ffb257",
+    lampPosition: [0, 1.7, 0.6],
+    lampIntensity: 64,
+    rugColor: "#8a7f6c",
+    chairColor: "#6f6545",
+    camera: { position: [-6.4, -1.6, 5.2], lookAt: [-1.4, -1.2, 0] },
+    shadow: { frustum: 16, far: 58, near: 4, bias: -0.002, normalBias: 0.08 },
   },
 };
 

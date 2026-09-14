@@ -27,11 +27,20 @@ export function buildWallGeometry(
   let current = new Brush(base);
   current.updateMatrixWorld();
 
+  /* Every evaluate returns a fresh Brush wrapping a fresh geometry, so the one
+     it replaced has to go back. Dropping them on the floor is what made a slider
+     drag walk off the end of GPU memory: a drag is hundreds of hulls, each of
+     them eight walls, each wall one geometry per window it cuts. */
   for (const item of windows) {
-    const hole = new Brush(new BoxGeometry(item.w - 0.2, item.h - 0.2, 0.4));
+    const holeGeometry = new BoxGeometry(item.w - 0.2, item.h - 0.2, 0.4);
+    const hole = new Brush(holeGeometry);
     hole.position.set(item.x, item.y, 0);
     hole.updateMatrixWorld();
-    current = evaluator.evaluate(current, hole, SUBTRACTION);
+
+    const next = evaluator.evaluate(current, hole, SUBTRACTION);
+    holeGeometry.dispose();
+    if (current.geometry !== base) current.geometry.dispose();
+    current = next;
   }
 
   base.dispose();

@@ -9,7 +9,7 @@ import EnvironmentLightformers from "./EnvironmentLightformers";
 import Lights from "./Lights";
 import Post from "./Post";
 import SpaceHull from "./SpaceHull";
-import { DEFAULT_PACKING, type Hexagon, type PackingOptions } from "@/lib/hull";
+import { type Hexagon, type PackingOptions } from "@/lib/hull";
 import {
   DEFAULT_INTENSITY,
   INITIAL_ORBIT_ANGLE,
@@ -28,7 +28,7 @@ export default function SpaceHullScene() {
   const [intensity, setIntensity] = useState(DEFAULT_INTENSITY);
   const [autoRotate, setAutoRotate] = useState(false);
   const [hexagon, setHexagon] = useState<Hexagon>(PRESETS[1].hexagon);
-  const [packing, setPacking] = useState<PackingOptions>(DEFAULT_PACKING);
+  const [packing, setPacking] = useState<PackingOptions>(PRESETS[1].packing);
 
   const preset = PRESETS[presetId];
 
@@ -132,27 +132,28 @@ export default function SpaceHullScene() {
 
       <Clock />
 
-      <div className="presets">
-        {(Object.keys(PRESETS) as unknown as PresetId[]).map((id) => (
-          <button
-            key={id}
-            type="button"
-            className={Number(id) === presetId ? "active" : ""}
-            onClick={() => {
-              // A preset is where the sliders start, not a lock on them. Both
-              // move together, or the first frame draws new colours on the old
-              // cross-section.
-              const next = Number(id) as PresetId;
-              setPresetId(next);
-              setHexagon(PRESETS[next].hexagon);
-            }}
-          >
-            {PRESETS[Number(id) as PresetId].name}
-          </button>
-        ))}
-      </div>
-
       <div className="panel">
+        <div className="presets">
+          {(Object.keys(PRESETS) as unknown as PresetId[]).map((id) => (
+            <button
+              key={id}
+              type="button"
+              className={Number(id) === presetId ? "active" : ""}
+              onClick={() => {
+                // A preset is where the sliders start, not a lock on them. Both
+                // move together, or the first frame draws new colours on the old
+                // cross-section.
+                const next = Number(id) as PresetId;
+                setPresetId(next);
+                setHexagon(PRESETS[next].hexagon);
+                setPacking(PRESETS[next].packing);
+              }}
+            >
+              {PRESETS[Number(id) as PresetId].name}
+            </button>
+          ))}
+        </div>
+
         <label className="row">
           <span>intensity</span>
           <input

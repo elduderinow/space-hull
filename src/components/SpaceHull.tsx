@@ -45,6 +45,7 @@ export default function SpaceHull({
           // Each wall gets its own layout, and the same one every time.
           seed={(i + 1) * 9176 + Math.round(segment.length * 100)}
           packing={packing}
+          surface={preset.surface}
           color={preset.wallColor}
           windowColor={preset.windowColor}
           panelColor={preset.panelColor}

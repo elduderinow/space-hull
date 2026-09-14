@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useStandardMaterial } from "@/lib/materials";
 import { useTextureSet } from "@/lib/textures";
+import type { WallSurface } from "@/lib/presets";
 import { packWall, type HullSegment, type HullType, type PackingOptions } from "@/lib/hull";
 import { buildWallGeometry, buildWindowFrame } from "@/lib/wallGeometry";
 
@@ -16,6 +17,7 @@ export default function Wall({
   depth,
   seed,
   packing,
+  surface,
   color,
   windowColor,
   panelColor,
@@ -25,12 +27,13 @@ export default function Wall({
   depth: number;
   seed: number;
   packing: PackingOptions;
+  surface: WallSurface;
   color: string;
   windowColor: string;
   panelColor: string;
   lightBarColor: string;
 }) {
-  const hullTextures = useTextureSet("greeble_space", { repeat: [1, 1] });
+  const hullTextures = useTextureSet(surface.textures, { repeat: surface.repeat });
   const floorTextures = useTextureSet("worn_abs", { repeat: [0.6, 0.6] });
   const steelTextures = useTextureSet("steel", { repeat: [0.1, 0.1] });
   const greebleTextures = useTextureSet("greeble");
@@ -47,10 +50,19 @@ export default function Wall({
     [depth, segment.length, items, isFloor],
   );
 
+  // Hand the old slab back when the sliders build a new one, and on unmount.
+  useEffect(() => () => geometry.dispose(), [geometry]);
+
   const wallMaterial = useStandardMaterial(
     isFloor
       ? { color: "white", metalness: 0, roughness: 0.8, normalScale: 0.4, textures: floorTextures }
-      : { color, metalness: 0, roughness: 1, normalScale: 5, textures: hullTextures },
+      : {
+          color,
+          metalness: surface.metalness,
+          roughness: surface.roughness,
+          normalScale: surface.normalScale,
+          textures: hullTextures,
+        },
   );
 
   const frameMaterial = useStandardMaterial({
@@ -82,6 +94,8 @@ export default function Wall({
         .map((item) => ({ item, geometry: buildWindowFrame(item.w, item.h) })),
     [items],
   );
+
+  useEffect(() => () => frames.forEach(({ geometry: frame }) => frame.dispose()), [frames]);
 
   const lightBar = lightBarPosition(segment.type);
 

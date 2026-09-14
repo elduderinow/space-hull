@@ -53,28 +53,26 @@ canvas {
   pointer-events: none;
 }
 
+/* Two across, at the top of the panel. Loose in the corner they sat under it
+   once the hull and window groups made it tall. */
 .presets {
-  position: fixed;
-  bottom: max(0.9rem, env(safe-area-inset-bottom));
-  left: max(0.9rem, env(safe-area-inset-left));
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  max-width: calc(100vw - 1.8rem);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.4rem;
 }
 
 .presets button {
   font: inherit;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: 0.6rem 0.9rem;
+  padding: 0.5rem 0.4rem;
+  text-align: center;
   color: rgba(255, 255, 255, 0.9);
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 0.4rem;
   cursor: pointer;
-  backdrop-filter: blur(10px);
 }
 
 .presets button.active {
