@@ -4,6 +4,7 @@ import { useEffect, useMemo } from "react";
 import { Color, DoubleSide, Vector2 } from "three";
 import { MeshStandardNodeMaterial } from "three/webgpu";
 import type { TextureSet } from "./textures";
+import { disposeSoon } from "./dispose";
 
 export type StandardMaterialOptions = {
   color?: string;
@@ -14,6 +15,16 @@ export type StandardMaterialOptions = {
   emissiveIntensity?: number;
   doubleSide?: boolean;
   textures?: TextureSet;
+  /**
+   * Changing this builds a new material rather than reusing the old one.
+   *
+   * A node material's graph is decided by which maps it has, not just their
+   * contents, so swapping to a set with a different shape - worn_abs has no
+   * aoMap where greeble_space does - is a different shader, and needsUpdate on
+   * the live one is not enough. This only came up once the hull stopped
+   * remounting on a preset change and started mutating its materials in place.
+   */
+  rebuildKey?: string;
 };
 
 /**
@@ -32,8 +43,10 @@ export function useStandardMaterial({
   emissiveIntensity = 1,
   doubleSide = false,
   textures,
+  rebuildKey = "",
 }: StandardMaterialOptions) {
-  const material = useMemo(() => new MeshStandardNodeMaterial(), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const material = useMemo(() => new MeshStandardNodeMaterial(), [rebuildKey]);
 
   useEffect(() => {
     material.color = new Color(color);
@@ -56,7 +69,9 @@ export function useStandardMaterial({
     material.needsUpdate = true;
   }, [material, textures]);
 
-  useEffect(() => () => material.dispose(), [material]);
+  // Deferred for the same reason geometries are: the frame in flight is still
+  // drawing with it.
+  useEffect(() => () => disposeSoon(material), [material]);
 
   return material;
 }

@@ -69,6 +69,7 @@ export default function Wall({
           roughness: surface.roughness,
           normalScale: surface.normalScale,
           textures: hullTextures,
+          rebuildKey: surface.textures,
         },
   );
 
