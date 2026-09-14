@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useStandardMaterial } from "@/lib/materials";
 import { useTextureSet } from "@/lib/textures";
 import { buildShieldGeometry } from "@/lib/wallGeometry";
+import { disposeSoon } from "@/lib/dispose";
 
 /** The outer ring of the hull, seen through the windows. */
 export default function WindowShield({
@@ -19,7 +20,7 @@ export default function WindowShield({
   // unmount as well is what crashed a preset change.
   const previous = useRef(geometry);
   useEffect(() => {
-    if (previous.current !== geometry) previous.current.dispose();
+    if (previous.current !== geometry) disposeSoon(previous.current);
     previous.current = geometry;
   }, [geometry]);
   const material = useStandardMaterial({

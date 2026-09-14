@@ -6,6 +6,7 @@ import { useTextureSet } from "@/lib/textures";
 import type { WallSurface } from "@/lib/presets";
 import { packWall, type HullSegment, type HullType, type PackingOptions } from "@/lib/hull";
 import { buildWallGeometry, buildWindowFrame } from "@/lib/wallGeometry";
+import { disposeSoon } from "@/lib/dispose";
 
 /**
  * One face of the hull: a slab with windows cut through it, window frames and
@@ -50,14 +51,12 @@ export default function Wall({
     [depth, segment.length, items, isFloor],
   );
 
-  /* Hand back the slab the sliders replaced, and only that one.
-     Not the cleanup form: that also fires on unmount, and a preset change
-     unmounts the whole hull. r3f disposes those geometries itself on the way
-     out, and the second dispose throws in the WebGPU backend, which is why
-     switching presets crashed while dragging a slider did not. */
+  /* Hand back the slab the sliders replaced, and only that one. Never on
+     unmount, where r3f is already disposing, and never in the same breath as
+     the swap - see disposeSoon. */
   const previousGeometry = useRef(geometry);
   useEffect(() => {
-    if (previousGeometry.current !== geometry) previousGeometry.current.dispose();
+    if (previousGeometry.current !== geometry) disposeSoon(previousGeometry.current);
     previousGeometry.current = geometry;
   }, [geometry]);
 
@@ -106,7 +105,7 @@ export default function Wall({
   const previousFrames = useRef(frames);
   useEffect(() => {
     if (previousFrames.current !== frames) {
-      previousFrames.current.forEach(({ geometry: frame }) => frame.dispose());
+      previousFrames.current.forEach(({ geometry: frame }) => disposeSoon(frame));
     }
     previousFrames.current = frames;
   }, [frames]);
