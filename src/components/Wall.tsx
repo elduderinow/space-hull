@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useStandardMaterial } from "@/lib/materials";
 import { useTextureSet } from "@/lib/textures";
 import type { WallSurface } from "@/lib/presets";
@@ -50,8 +50,16 @@ export default function Wall({
     [depth, segment.length, items, isFloor],
   );
 
-  // Hand the old slab back when the sliders build a new one, and on unmount.
-  useEffect(() => () => geometry.dispose(), [geometry]);
+  /* Hand back the slab the sliders replaced, and only that one.
+     Not the cleanup form: that also fires on unmount, and a preset change
+     unmounts the whole hull. r3f disposes those geometries itself on the way
+     out, and the second dispose throws in the WebGPU backend, which is why
+     switching presets crashed while dragging a slider did not. */
+  const previousGeometry = useRef(geometry);
+  useEffect(() => {
+    if (previousGeometry.current !== geometry) previousGeometry.current.dispose();
+    previousGeometry.current = geometry;
+  }, [geometry]);
 
   const wallMaterial = useStandardMaterial(
     isFloor
@@ -95,7 +103,13 @@ export default function Wall({
     [items],
   );
 
-  useEffect(() => () => frames.forEach(({ geometry: frame }) => frame.dispose()), [frames]);
+  const previousFrames = useRef(frames);
+  useEffect(() => {
+    if (previousFrames.current !== frames) {
+      previousFrames.current.forEach(({ geometry: frame }) => frame.dispose());
+    }
+    previousFrames.current = frames;
+  }, [frames]);
 
   const lightBar = lightBarPosition(segment.type);
 
