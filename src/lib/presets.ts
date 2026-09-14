@@ -128,8 +128,11 @@ export const PRESETS: Record<PresetId, Preset> = {
     directionalColor: "#c3d8ea",
     hexagon: { height: 8.2, width: 22.4, floorwidth: 19.8, ceilingwidth: 13.5, depth: 13.6 },
     /* Fewer, wider windows with more wall between them. The default scatter is
-       tuned for a hangar and reads as a curtain wall at this size. */
-    packing: { gap: 1.3, density: 24, windowRatio: 34, windowW: 7.2, windowH: 3.2, panelW: 3.4, panelH: 1.8 },
+       tuned for a hangar and reads as a curtain wall at this size.
+       Sized against the walls, not by eye: a cell is windowW + gap across, and
+       the first attempt at this made one 8.5 wide against a 13.6 deep wall, so
+       every wall came out one column of nothing and Hoth had no windows at all. */
+    packing: { gap: 0.8, density: 58, windowRatio: 58, windowW: 5.4, windowH: 2.6, panelW: 3.4, panelH: 1.8 },
     /* greeble_space carries its own dark basecolour, which swallowed the cream
        and put the room back in a hangar. worn_abs has none, so wallColor wins. */
     surface: PAINTED_PANEL,

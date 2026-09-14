@@ -119,8 +119,12 @@ export default function SpaceHullScene() {
         <Controls preset={preset} />
         <Lights preset={preset} angle={angle} intensity={intensity} />
         <Suspense fallback={null}>
+          {/* No key here. Remounting the hull on a preset change tore down every
+              wall, material and texture at once and rebuilt them, and that
+              teardown is where preset switching kept crashing. Everything in
+              here already follows its props, so a preset change is now an
+              ordinary update, the same path a slider takes. */}
           <SpaceHull
-            key={presetId}
             preset={preset}
             hexagon={geometryHexagon}
             packing={geometryPacking}
